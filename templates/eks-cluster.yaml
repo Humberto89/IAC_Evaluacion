@@ -53,7 +53,7 @@ Resources:
 
   NodeGroup:
     Type: AWS::EKS::Nodegroup
-    DependsOn: EKSCluster  # ?? Se asegura que el cluster esté listo
+    DependsOn: EKSCluster
     Properties:
       NodegroupName: !Sub nodegroup-${Environment}
       ClusterName: !Ref EKSCluster
