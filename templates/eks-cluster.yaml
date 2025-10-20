@@ -53,6 +53,7 @@ Resources:
 
   NodeGroup:
     Type: AWS::EKS::Nodegroup
+    DependsOn: EKSCluster  # ?? Se asegura que el cluster esté listo
     Properties:
       NodegroupName: !Sub nodegroup-${Environment}
       ClusterName: !Ref EKSCluster
@@ -68,3 +69,13 @@ Resources:
       InstanceTypes:
         - t3.medium
       DiskSize: 20
+
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub microservicio-${Environment}
+      ImageScanningConfiguration:
+        scanOnPush: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
