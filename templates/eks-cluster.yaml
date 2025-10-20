@@ -7,6 +7,8 @@ Parameters:
     Default: qa
 
 Resources:
+
+  # ????? Rol para el control plane del EKS
   EKSServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -23,6 +25,7 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
 
+  # ?? Rol para los nodos EC2 de EKS
   NodeInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -41,9 +44,53 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
 
+  # ?? Cluster EKS
   EKSCluster:
     Type: AWS::EKS::Cluster
     Properties:
       Name: !Sub EKS-Cluster-${Environment}
       RoleArn: !GetAtt EKSServiceRole.Arn
-      Version: "1.32"  # ? A
+      Version: "1.27"  # ? Versión estable
+      ResourcesVpcConfig:
+        SubnetIds:
+          - !ImportValue 
+              Fn::Sub: DevOps-Subnet1-${Environment}-Id
+          - !ImportValue 
+              Fn::Sub: DevOps-Subnet2-${Environment}-Id
+        SecurityGroupIds:
+          - !ImportValue 
+              Fn::Sub: DevOps-SecurityGroup-${Environment}-Id
+        EndpointPublicAccess: true
+
+  # ?? Node Group
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    DependsOn: EKSCluster
+    Properties:
+      NodegroupName: !Sub nodegroup-${Environment}
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      Subnets:
+        - !ImportValue 
+            Fn::Sub: DevOps-Subnet1-${Environment}-Id
+        - !ImportValue 
+            Fn::Sub: DevOps-Subnet2-${Environment}-Id
+      ScalingConfig:
+        MinSize: 1
+        MaxSize: 2
+        DesiredSize: 1
+      AmiType: AL2_x86_64
+      InstanceTypes:
+        - t3.medium
+      DiskSize: 20
+
+  # ?? Repositorio ECR
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub microservicio-${Environment}
+      ImageScanningConfiguration:
+        ScanOnPush: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
