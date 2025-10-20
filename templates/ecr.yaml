@@ -1,0 +1,16 @@
+# templates/ecr.yaml
+Resources:
+  MicroservicioRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: microservicio-evaluacion
+      ImageScanningConfiguration:
+        scanOnPush: true
+      Tags:
+        - Key: "Environment"
+          Value: "qa"
+
+Outputs:
+  RepositoryUri:
+    Description: "URI del ECR para el microservicio"
+    Value: !Sub "${MicroservicioRepository.RepositoryUri}"
