@@ -46,6 +46,7 @@ Resources:
     Properties:
       Name: !Sub EKS-Cluster-${Environment}
       RoleArn: !GetAtt EKSServiceRole.Arn
+      Version: "1.32"  # ? Añadido para usar versión compatible con AL2
       ResourcesVpcConfig:
         SubnetIds:
           - Fn::ImportValue: !Sub DevOps-Subnet1-${Environment}-Id
@@ -66,7 +67,7 @@ Resources:
         MinSize: 1
         MaxSize: 2
         DesiredSize: 1
-      AmiType: AL2_x86_64
+      AmiType: AL2_x86_64  # ? Compatible con Kubernetes 1.32
       InstanceTypes:
         - t3.medium
       DiskSize: 20
@@ -76,7 +77,7 @@ Resources:
     Properties:
       RepositoryName: !Sub microservicio-${Environment}
       ImageScanningConfiguration:
-        ScanOnPush: true  # ? FIXED HERE
+        ScanOnPush: true  # ? Fixed property name
       Tags:
         - Key: Environment
           Value: !Ref Environment
