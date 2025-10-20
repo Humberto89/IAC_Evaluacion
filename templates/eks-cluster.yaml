@@ -46,38 +46,4 @@ Resources:
     Properties:
       Name: !Sub EKS-Cluster-${Environment}
       RoleArn: !GetAtt EKSServiceRole.Arn
-      Version: "1.32"  # ? Añadido para usar versión compatible con AL2
-      ResourcesVpcConfig:
-        SubnetIds:
-          - Fn::ImportValue: !Sub DevOps-Subnet1-${Environment}-Id
-          - Fn::ImportValue: !Sub DevOps-Subnet2-${Environment}-Id
-        EndpointPublicAccess: true
-
-  NodeGroup:
-    Type: AWS::EKS::Nodegroup
-    DependsOn: EKSCluster
-    Properties:
-      NodegroupName: !Sub nodegroup-${Environment}
-      ClusterName: !Ref EKSCluster
-      NodeRole: !GetAtt NodeInstanceRole.Arn
-      Subnets:
-        - Fn::ImportValue: !Sub DevOps-Subnet1-${Environment}-Id
-        - Fn::ImportValue: !Sub DevOps-Subnet2-${Environment}-Id
-      ScalingConfig:
-        MinSize: 1
-        MaxSize: 2
-        DesiredSize: 1
-      AmiType: AL2_x86_64  # ? Compatible con Kubernetes 1.32
-      InstanceTypes:
-        - t3.medium
-      DiskSize: 20
-
-  ECRRepository:
-    Type: AWS::ECR::Repository
-    Properties:
-      RepositoryName: !Sub microservicio-${Environment}
-      ImageScanningConfiguration:
-        ScanOnPush: true  # ? Fixed property name
-      Tags:
-        - Key: Environment
-          Value: !Ref Environment
+      Version: "1.32"  # ? A
