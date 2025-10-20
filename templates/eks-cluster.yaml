@@ -47,7 +47,7 @@ Resources:
     Properties:
       Name: !Sub EKS-Cluster-${Environment}
       RoleArn: !GetAtt EKSServiceRole.Arn
-      Version: "1.27"
+      Version: "1.29"
       ResourcesVpcConfig:
         SubnetIds:
           - !ImportValue 
