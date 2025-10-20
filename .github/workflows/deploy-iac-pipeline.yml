@@ -1,0 +1,39 @@
+trigger:
+  branches:
+    include:
+      - release
+
+variables:
+  - group: iac-vars
+
+stages:
+  - stage: DeployIAC
+    jobs:
+      - job: Deploy
+        pool:
+          vmImage: 'ubuntu-latest'
+        variables:
+          - name: env
+            value: release
+        steps:
+          - checkout: self
+
+          - task: AWSCloudFormationCreateOrUpdateStack@1
+            displayName: "Deploy VPC"
+            inputs:
+              awsCredentials: 'aws-service-connection'
+              regionName: 'us-east-1'
+              stackName: 'DevOpsStack-VPC-$(env)'
+              templatePath: 'templates/vpc.yaml'
+              parametersFile: 'parameters/$(env).json'
+              capabilities: 'CAPABILITY_IAM'
+
+          - task: AWSCloudFormationCreateOrUpdateStack@1
+            displayName: "Deploy EKS Cluster"
+            inputs:
+              awsCredentials: 'aws-service-connection'
+              regionName: 'us-east-1'
+              stackName: 'DevOpsStack-EKS-$(env)'
+              templatePath: 'templates/eks-cluster.yaml'
+              parametersFile: 'parameters/$(env).json'
+              capabilities: 'CAPABILITY_IAM'

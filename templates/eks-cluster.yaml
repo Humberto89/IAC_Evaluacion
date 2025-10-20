@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EKS Cluster Template
+
+Parameters:
+  Environment:
+    Type: String
+    Default: qa
+
+Resources:
+  EKSServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - eks.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
+        - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
+
+  NodeInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
+        - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
+        - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
+
+  EKSCluster:
+    Type: AWS::EKS::Cluster
+    Properties:
+      Name: !Sub EKS-Cluster-${Environment}
+      RoleArn: !GetAtt EKSServiceRole.Arn
+      ResourcesVpcConfig:
+        SubnetIds:
+          - Fn::ImportValue: !Sub DevOps-Subnet1-${Environment}-Id
+          - Fn::ImportValue: !Sub DevOps-Subnet2-${Environment}-Id
+        EndpointPublicAccess: true
+
+  NodeGroup:
+    Type: AWS::EKS::Nodegroup
+    Properties:
+      NodegroupName: !Sub nodegroup-${Environment}
+      ClusterName: !Ref EKSCluster
+      NodeRole: !GetAtt NodeInstanceRole.Arn
+      Subnets:
+        - Fn::ImportValue: !Sub DevOps-Subnet1-${Environment}-Id
+        - Fn::ImportValue: !Sub DevOps-Subnet2-${Environment}-Id
+      ScalingConfig:
+        MinSize: 1
+        MaxSize: 2
+        DesiredSize: 1
+      AmiType: AL2_x86_64
+      InstanceTypes:
+        - t3.medium
+      DiskSize: 20
