@@ -8,7 +8,6 @@ Parameters:
 
 Resources:
 
-  # ????? Rol para el control plane del EKS
   EKSServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -25,7 +24,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKSClusterPolicy
         - arn:aws:iam::aws:policy/AmazonEKSServicePolicy
 
-  # ?? Rol para los nodos EC2 de EKS
   NodeInstanceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -44,13 +42,12 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/ElasticLoadBalancingFullAccess
 
-  # ?? Cluster EKS
   EKSCluster:
     Type: AWS::EKS::Cluster
     Properties:
       Name: !Sub EKS-Cluster-${Environment}
       RoleArn: !GetAtt EKSServiceRole.Arn
-      Version: "1.27"  # ? Versión estable
+      Version: "1.27"
       ResourcesVpcConfig:
         SubnetIds:
           - !ImportValue 
@@ -62,7 +59,6 @@ Resources:
               Fn::Sub: DevOps-SecurityGroup-${Environment}-Id
         EndpointPublicAccess: true
 
-  # ?? Node Group
   NodeGroup:
     Type: AWS::EKS::Nodegroup
     DependsOn: EKSCluster
@@ -84,7 +80,6 @@ Resources:
         - t3.medium
       DiskSize: 20
 
-  # ?? Repositorio ECR
   ECRRepository:
     Type: AWS::ECR::Repository
     Properties:
